@@ -1,0 +1,15 @@
+.metadata-grid {
+  display: grid;
+  grid-template-columns: 200px 200px;
+}
+
+.metadata-grid > input, .metadata-grid > select {
+  height: min-content;
+  place-self: center;
+}
+
+.center {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
