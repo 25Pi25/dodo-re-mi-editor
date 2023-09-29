@@ -44,6 +44,8 @@ export default function App() {
       switch (tab) {
         case "Mapping":
           return <MapEditor song={song} />
+        case "Metadata":
+          return <p>idk what to put here</p>
       }
     })()}
   </>
