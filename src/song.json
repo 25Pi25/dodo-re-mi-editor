@@ -4,7 +4,7 @@
     "bucket": "Custom",
     "scaleKey": "c",
     "scaleType": "major",
-    "duration": 100,
+    "duration": 13000,
     "guideStartOffset": 0,
     "guide": [],
     "hasLocalizedBackingTrack": false,

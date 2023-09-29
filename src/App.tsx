@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import './App.css'
-import { Song, TabType } from './types'
+import { Song, TabType, tabType } from './types'
 import MapEditor from './components/MapEditor';
 import devSong from './song.json'
 import { MetadataInput } from './components/MetadataInput';
@@ -30,7 +30,7 @@ export default function App() {
   }
   return <>
     <div>
-      {["Mapping", "Metadata"].map((tabOption) =>
+      {tabType.map((tabOption) =>
         <button
           key={tabOption}
           onClick={() => setTab(tabOption as TabType)}

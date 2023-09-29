@@ -44,5 +44,5 @@ export const keyModifiers = ["", "s", "b"] as const;
 type KeyModifiers = typeof keyModifiers[number];
 export type Scale = Omit<`${MainKeys}${KeyModifiers}`, "bs" | "cb" | "es" | "fb">
 export type ScaleKey = "major" | "minor" // support for aug/dim? not sure
-
-export type TabType = "Mapping" | "Metadata";
+export const tabType = ["Mapping", "Metadata"] as const;
+export type TabType = typeof tabType[number];
