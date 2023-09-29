@@ -45,4 +45,4 @@ type KeyModifiers = typeof keyModifiers[number];
 export type Scale = Omit<`${MainKeys}${KeyModifiers}`, "bs" | "cb" | "es" | "fb">
 export type ScaleKey = "major" | "minor" // support for aug/dim? not sure
 
-export type TabType = "map" | "metadata";
+export type TabType = "Mapping" | "Metadata";

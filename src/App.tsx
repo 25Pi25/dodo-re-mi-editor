@@ -6,7 +6,7 @@ import MapEditor from './components/MapEditor';
 
 export default function App() {
   const [song, setSong] = useState<Song>();
-  const [tab, setTab] = useState<TabType>("map");
+  const [tab, setTab] = useState<TabType>("Mapping");
   const [ogg, setOgg] = useState<File>();
   if (!song) {
     return ogg ? <MetadataInput ogg={ogg} setSong={setSong} /> :
@@ -30,19 +30,19 @@ export default function App() {
 
   return <>
     <div>
-      {["map", "metadata"].map((tabOption) =>
+      {["Mapping", "Metadata"].map((tabOption) =>
         <button
           key={tabOption}
           onClick={() => setTab(tabOption as TabType)}
           disabled={tab == tabOption}
           className={tab == tabOption ? "bold" : ""}
-        >Mapping
+        >{tabOption}
         </button>
       )}
     </div>
     {(() => {
       switch (tab) {
-        case "map":
+        case "Mapping":
           return <MapEditor song={song} />
       }
     })()}
