@@ -1,12 +1,12 @@
 import { useState } from 'react'
 import './App.css'
-import { Song } from './types'
+import { Song, TabType } from './types'
 import { MetadataInput } from './components/MetadataInput';
 import MapEditor from './components/MapEditor';
 
 export default function App() {
   const [song, setSong] = useState<Song>();
-  const [tab, setTab] = useState<"map" | "metadata">("map");
+  const [tab, setTab] = useState<TabType>("map");
   const [ogg, setOgg] = useState<File>();
   if (!song) {
     return ogg ? <MetadataInput ogg={ogg} setSong={setSong} /> :
@@ -30,8 +30,15 @@ export default function App() {
 
   return <>
     <div>
-      <button onClick={() => setTab("map")} disabled={tab == "map"}>Mapping</button>
-      <button onClick={() => setTab("metadata")} disabled={tab == "metadata"}>Metadata</button>
+      {["map", "metadata"].map((tabOption) =>
+        <button
+          key={tabOption}
+          onClick={() => setTab(tabOption as TabType)}
+          disabled={tab == tabOption}
+          className={tab == tabOption ? "bold" : ""}
+        >Mapping
+        </button>
+      )}
     </div>
     {(() => {
       switch (tab) {
