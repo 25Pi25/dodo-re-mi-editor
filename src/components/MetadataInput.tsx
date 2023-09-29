@@ -1,5 +1,5 @@
 import { Dispatch, SetStateAction, useRef, RefObject } from 'react'
-import { Song, mainKeys, keyModifiers, BeatMap, SongGuide } from './types'
+import { Song, mainKeys, keyModifiers, BeatMap, SongGuide } from '../types'
 
 export function MetadataInput({ ogg, setSong }: { ogg: File, setSong: Dispatch<SetStateAction<Song | undefined>> }) {
     const metadata = {
@@ -18,11 +18,11 @@ export function MetadataInput({ ogg, setSong }: { ogg: File, setSong: Dispatch<S
             </audio>
             <div className="metadata-grid">
                 <h2>Song ID</h2>
-                <input type="text" ref={metadata.id} />
+                <input type="text" ref={metadata.id} defaultValue={"my-custom-song"}/>
                 <h2>Composer</h2>
-                <input type="text" ref={metadata.composer} />
+                <input type="text" ref={metadata.composer} defaultValue={"unknown artist"}/>
                 <h2>Category</h2>
-                <input type="text" ref={metadata.bucket} />
+                <input type="text" ref={metadata.bucket} defaultValue={"Custom"}/>
                 <h2>Scale Key</h2>
                 <div className='center'>
                     <select className="dropdown-options" ref={metadata.scaleKey}>
@@ -53,6 +53,7 @@ export function MetadataInput({ ogg, setSong }: { ogg: File, setSong: Dispatch<S
 }
 
 const defaultMap: SongGuide & { beatmap: BeatMap } = {
+    duration: 100, // TODO: fix arbitrary number
     guideStartOffset: 0,
     guide: [],
     hasLocalizedBackingTrack: false,
@@ -72,7 +73,7 @@ function createSong(
     metadata: Record<string, RefObject<HTMLInputElement | HTMLSelectElement | undefined>>,
     setSong: Dispatch<SetStateAction<Song | undefined>>
 ) {
-    if (Object.values(metadata).some(x => !x?.current?.value)) return;
+    if (Object.values(metadata).some((x, i) => !x?.current?.value && i != 4)) return;
 
     const metadataValues: Record<string, string> = {};
     for (const key in metadata) {
@@ -84,7 +85,6 @@ function createSong(
         composer,
         bucket,
         scaleKey: scaleKey + scaleModifier,
-        duration: 100, // arbitrary number lol
         scaleType,
         ...defaultMap
     })
