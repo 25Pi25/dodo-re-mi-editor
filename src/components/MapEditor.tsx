@@ -2,6 +2,7 @@ import { Component } from 'react';
 import "./MapEditor.css"
 import { Stage, Layer, Rect, Circle } from 'react-konva';
 import { Song } from '../types';
+import { KonvaEventObject } from 'konva/lib/Node';
 
 interface Props {
     song: Song
@@ -42,22 +43,22 @@ export default class MapEditor extends Component<Props, State> {
                     <Circle
                         x={200}
                         y={this.state.scroll}
-                        width={100}
-                        height={100}
+                        width={50}
+                        height={50}
                         fill="red"
                     />
                     <Circle
                         x={400}
                         y={this.state.scroll + 200}
-                        width={100}
-                        height={100}
+                        width={50}
+                        height={50}
                         fill="red"
                     />
                 </Layer>
             </Stage>
         </div>
     }
-    handleWheel(e: any) {
-        this.setState(({ scroll }) => ({ scroll: scroll + e.evt.deltaY }))
+    handleWheel({ evt: { deltaY } }: KonvaEventObject<WheelEvent>) {
+        this.setState(({ scroll }) => ({ scroll: scroll - deltaY }))
     }
 }
