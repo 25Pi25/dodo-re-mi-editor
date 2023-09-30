@@ -74,7 +74,6 @@ export default class MapEditor extends Component<Props, State> {
   getDurationMs = (beats: number) => beats / this.state.bpm * 60_000;
 
   addNote(beat: number, lane: number) {
-    console.log(this.state.notes)
     const sameBeatSameLane = this.state.notes.findIndex(note => note.beat == beat && note.lane == lane);
     if (sameBeatSameLane != -1) {
       this.setState(({ notes }) => ({ notes: notes.filter((_, i) => i != sameBeatSameLane) }));
