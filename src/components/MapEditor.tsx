@@ -14,6 +14,7 @@ interface State {
   precision: number
   beatGap: number
   bpm: number
+  offset: number
   notes: EditorBeatNote[]
   hover?: [number, number]
   playbackMs?: number
@@ -30,6 +31,7 @@ export default class MapEditor extends Component<Props, State> {
     precision: 4,
     beatGap: 200,
     bpm: 91,
+    offset: 9750,
     notes: []
   }
   holding = {
@@ -113,27 +115,32 @@ export default class MapEditor extends Component<Props, State> {
     const fr = new FileReader();
     fr.onload = e => {
       if (!e.target?.result) return;
-      this.setState(({ scroll }) => ({ playbackMs: Math.max(scroll - 800, 0) }));
+      this.setState({ playbackMs: 0 });
       const audioBlob = new Blob([e.target.result], { type: this.ogg.type });
       const audioUrl = URL.createObjectURL(audioBlob);
 
       const audio = new Audio(audioUrl);
-      audio.play()
-      requestAnimationFrame(delta => this.playbackFrame(delta, delta, audio))
+      audio.currentTime = (this.state.offset + Math.max(this.state.scroll - 800, 0)) / 1000;
+      audio.play();
+
+      const hit = new Audio();
+      hit.src = "/blip.mp3";
+      requestAnimationFrame(() => this.playbackFrame(audio, hit));
     }
     fr.readAsArrayBuffer(this.ogg);
   }
 
-  playbackFrame(delta: number, offset: number, audio: HTMLAudioElement, prevDelta = 0) {
+  playbackFrame(audio: HTMLAudioElement, hit: HTMLAudioElement, prevTime = 0) {
+    const time = audio.currentTime * 1000 - this.state.offset;
     if (this.state.playbackMs == undefined) {
       audio.pause();
       return;
     }
-    this.setState({ playbackMs: delta - offset })
-    requestAnimationFrame(newDelta => this.playbackFrame(newDelta, offset, audio, delta))
+    this.setState({ playbackMs: time })
+    requestAnimationFrame(() => this.playbackFrame(audio, hit, time))
     this.state.notes
-      .filter(note => prevDelta - offset < this.getDurationMs(note.beat) && delta - offset >= this.getDurationMs(note.beat))
-      .forEach(({ beat }, i) => console.log({ noteNum: i, beat }))
+      .filter(note => prevTime <= this.getDurationMs(note.beat) && time >= this.getDurationMs(note.beat))
+      .forEach(() => hit.play())
   }
 
   render() {
