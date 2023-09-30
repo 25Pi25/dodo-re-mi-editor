@@ -33,9 +33,16 @@ export interface BeatNoteGroup {
 }
 
 export interface BeatNote {
-    start: number,
-    duration: number,
+    start: number
+    duration: number
     note: number
+}
+
+export interface EditorBeatNote {
+    beat: number
+    duration: number
+    note: number
+    lane: number
 }
 
 export const mainKeys = ["c", "d", "e", "f", "g","a", "b"] as const;

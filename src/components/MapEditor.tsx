@@ -1,7 +1,7 @@
 import { Component } from 'react';
 import "./MapEditor.css"
 import { Stage, Layer, Rect, Circle } from 'react-konva';
-import { BeatNote, Song } from '../types';
+import { EditorBeatNote, Song } from '../types';
 import { KonvaEventObject } from 'konva/lib/Node';
 import BeatMarkers from './BeatMarkers';
 
@@ -13,7 +13,7 @@ interface State {
   precision: number
   beatGap: number
   bpm: number
-  notes: BeatNote[]
+  notes: EditorBeatNote[]
   hover?: [number, number]
 }
 export default class MapEditor extends Component<Props, State> {
@@ -57,7 +57,7 @@ export default class MapEditor extends Component<Props, State> {
     if (this.holding.alt) {
       const isNegative = deltaY < 0;
       const beats = (this.state.scroll - (this.HEIGHT / 2)) / this.state.beatGap
-      const newBeatGap = Math.min(Math.max(1, this.state.beatGap * (isNegative ? 2 : 0.5)), 2000)
+      const newBeatGap = Math.min(Math.max(1, this.state.beatGap * (isNegative ? 2 : 0.5)), this.HEIGHT / 2)
       this.setState(() => ({
         beatGap: newBeatGap,
         scroll: beats * newBeatGap + (this.HEIGHT / 2)
@@ -72,6 +72,22 @@ export default class MapEditor extends Component<Props, State> {
   getTotalBeats = (ms = this.song.duration) => ms * this.state.bpm / 60_000;
 
   getDurationMs = (beats: number) => beats / this.state.bpm * 60_000;
+
+  addNote(beat: number, lane: number) {
+    console.log(this.state.notes)
+    const sameBeatSameLane = this.state.notes.findIndex(note => note.beat == beat && note.lane == lane);
+    if (sameBeatSameLane != -1) {
+      this.setState(({ notes }) => ({ notes: notes.filter((_, i) => i != sameBeatSameLane) }));
+      return;
+    }
+    const newBeat: EditorBeatNote = {
+      beat,
+      lane,
+      duration: 135,
+      note: 37,
+    }
+    this.setState(({ notes }) => ({ notes: [...notes, newBeat] }))
+  }
 
   render() {
     return <div className='map'>
@@ -90,6 +106,19 @@ export default class MapEditor extends Component<Props, State> {
         </Layer>
         <Layer>
           <BeatMarkers editor={this} />
+          {...this.state.notes.map(({ beat, lane }, i) => {
+            return <Circle
+              key={i}
+              x={this.LINES_BORDER + (this.WIDTH - this.LINES_BORDER * 2) * lane / 4}
+              y={-this.state.beatGap * beat + this.state.scroll}
+              width={(this.WIDTH - this.LINES_BORDER) / 6}
+              height={this.state.beatGap / 4}
+              fill="red"
+              listening={false}
+            />
+          })
+
+          }
         </Layer>
       </Stage>
     </div>

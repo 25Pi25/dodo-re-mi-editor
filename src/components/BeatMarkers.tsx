@@ -44,6 +44,7 @@ export default function BeatMarkers({ editor }: { editor: MapEditor }) {
                             height={height}
                             offset={{ x: width / 2, y: height / 2 }}
                             onPointerEnter={() => editor.setState({ hover: [i, j] })}
+                            onPointerClick={() => editor.addNote(beatNumber, j)}
                         />
                         {editor.state.hover?.[0] == i && editor.state.hover?.[1] == j &&
                             <Circle
@@ -52,6 +53,7 @@ export default function BeatMarkers({ editor }: { editor: MapEditor }) {
                                 width={width}
                                 height={height}
                                 fill="rgba(255,0,0,0.5)"
+                                listening={false}
                             />}
                     </Fragment>
                 })}
@@ -59,17 +61,25 @@ export default function BeatMarkers({ editor }: { editor: MapEditor }) {
         })}
         <Rect
             x={editor.WIDTH / 2}
+            y={editor.HEIGHT / 2}
+            width={editor.WIDTH * bigMarkerWidth}
+            height={2}
+            offset={{ x: editor.WIDTH * bigMarkerWidth / 2, y: 0 }}
+            fill="rgba(255,255,0,0.2)"
+        />
+        <Rect
+            x={editor.WIDTH / 2}
             y={-editor.state.beatGap * editor.getTotalBeats() + editor.state.scroll}
             width={editor.WIDTH * bigMarkerWidth}
             height={2}
-            offset={{ x: editor.WIDTH * 5 / 16, y: 0 }}
-            fill="rgb(255,0,0)"
+            offset={{ x: editor.WIDTH * bigMarkerWidth / 2, y: 0 }}
+            fill="red"
         />
         <Text
             x={editor.WIDTH / 2}
             y={-editor.state.beatGap * editor.getTotalBeats() + editor.state.scroll}
             offset={{ x: -editor.WIDTH * 1 / 3, y: 15 }}
-            fill="rgb(255,0,0)"
+            fill="red"
             text="END"
             fontFamily='Inter'
             fontSize={30}
