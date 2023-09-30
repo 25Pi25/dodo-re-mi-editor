@@ -8,7 +8,7 @@ export default function BeatMarkers({ editor }: { editor: MapEditor }) {
     return <Fragment>
         {Array.from({ length: Math.floor(editor.getTotalBeats() * editor.state.precision) + 1 }, (_, i) => {
             const beatNumber = i / editor.state.precision;
-            const scroll = -editor.state.beatGap * beatNumber + editor.state.scroll;
+            const scroll = editor.getYFromBeats(beatNumber);
             // Optimize rendering by skipping beats that are outside the screen
             if (scroll < 0 || scroll > editor.HEIGHT) return null;
             const isWholeBeat = beatNumber % 1 == 0;
@@ -59,6 +59,14 @@ export default function BeatMarkers({ editor }: { editor: MapEditor }) {
                 })}
             </Fragment>
         })}
+        {editor.state.playbackMs != undefined && <Rect
+            x={editor.WIDTH / 2}
+            y={editor.getYFromBeats(editor.state.playbackMs / 60_000 * editor.state.bpm)}
+            width={editor.WIDTH * bigMarkerWidth}
+            height={2}
+            offset={{ x: editor.WIDTH * bigMarkerWidth / 2, y: 0 }}
+            fill="aqua"
+        />}
         <Rect
             x={editor.WIDTH / 2}
             y={editor.HEIGHT / 2}
@@ -69,7 +77,7 @@ export default function BeatMarkers({ editor }: { editor: MapEditor }) {
         />
         <Rect
             x={editor.WIDTH / 2}
-            y={-editor.state.beatGap * editor.getTotalBeats() + editor.state.scroll}
+            y={editor.getYFromBeats(editor.getTotalBeats())}
             width={editor.WIDTH * bigMarkerWidth}
             height={2}
             offset={{ x: editor.WIDTH * bigMarkerWidth / 2, y: 0 }}
@@ -77,7 +85,7 @@ export default function BeatMarkers({ editor }: { editor: MapEditor }) {
         />
         <Text
             x={editor.WIDTH / 2}
-            y={-editor.state.beatGap * editor.getTotalBeats() + editor.state.scroll}
+            y={editor.getYFromBeats(editor.getTotalBeats())}
             offset={{ x: -editor.WIDTH * 1 / 3, y: 15 }}
             fill="red"
             text="END"

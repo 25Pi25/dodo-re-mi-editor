@@ -7,6 +7,7 @@ import BeatMarkers from './BeatMarkers';
 
 interface Props {
   song: Song
+  ogg: File
 }
 interface State {
   scroll: number
@@ -15,9 +16,12 @@ interface State {
   bpm: number
   notes: EditorBeatNote[]
   hover?: [number, number]
+  playbackMs?: number
 }
+
 export default class MapEditor extends Component<Props, State> {
   public song: Song;
+  public ogg: File;
   public LINES_BORDER = 200;
   public WIDTH = 800;
   public HEIGHT = 600;
@@ -34,23 +38,34 @@ export default class MapEditor extends Component<Props, State> {
 
   constructor(props: Props) {
     super(props);
-    const { song } = props;
+    const { song, ogg } = props;
     this.song = song;
+    this.ogg = ogg;
   }
 
   handleAltKey(e: KeyboardEvent, changeAltTo: boolean) {
+    if (e.key == " " && changeAltTo) {
+      this.playtestSong()
+      return;
+    }
     if (e.key != "Alt") return;
     this.holding.alt = changeAltTo;
     e.preventDefault();
   }
 
+  // TODO: reorganize this because event listeners are a bitch
+  func1 = (e: KeyboardEvent) => this.handleAltKey(e, true);
+  func2 = () => this.holding.alt = false;
+  func3 = (e: KeyboardEvent) => this.handleAltKey(e, false);
   componentDidMount() {
-    document.addEventListener("keydown", e => this.handleAltKey(e, true))
-    document.addEventListener("keyup", e => this.handleAltKey(e, false))
+    document.addEventListener("keydown", this.func1)
+    document.addEventListener("blur", this.func2)
+    document.addEventListener("keyup", this.func3)
   }
   componentWillUnmount() {
-    document.removeEventListener("keydown", e => this.handleAltKey(e, true))
-    document.removeEventListener("keyup", e => this.handleAltKey(e, false))
+    document.removeEventListener("keydown", this.func1)
+    document.removeEventListener("blur", this.func2)
+    document.removeEventListener("keyup", this.func3)
   }
 
   handleWheel({ evt: { deltaY } }: KonvaEventObject<WheelEvent>) {
@@ -69,6 +84,8 @@ export default class MapEditor extends Component<Props, State> {
     }))
   }
 
+  getYFromBeats = (beats: number) => -this.state.beatGap * beats + this.state.scroll;
+
   getTotalBeats = (ms = this.song.duration) => ms * this.state.bpm / 60_000;
 
   getDurationMs = (beats: number) => beats / this.state.bpm * 60_000;
@@ -86,6 +103,37 @@ export default class MapEditor extends Component<Props, State> {
       note: 37,
     }
     this.setState(({ notes }) => ({ notes: [...notes, newBeat] }))
+  }
+
+  playtestSong() {
+    if (this.state.playbackMs) {
+      this.setState({ playbackMs: undefined });
+      return;
+    }
+    const fr = new FileReader();
+    fr.onload = e => {
+      if (!e.target?.result) return;
+      this.setState(({ scroll }) => ({ playbackMs: Math.max(scroll - 800, 0) }));
+      const audioBlob = new Blob([e.target.result], { type: this.ogg.type });
+      const audioUrl = URL.createObjectURL(audioBlob);
+
+      const audio = new Audio(audioUrl);
+      audio.play()
+      requestAnimationFrame(delta => this.playbackFrame(delta, delta, audio))
+    }
+    fr.readAsArrayBuffer(this.ogg);
+  }
+
+  playbackFrame(delta: number, offset: number, audio: HTMLAudioElement, prevDelta = 0) {
+    if (this.state.playbackMs == undefined) {
+      audio.pause();
+      return;
+    }
+    this.setState({ playbackMs: delta - offset })
+    requestAnimationFrame(newDelta => this.playbackFrame(newDelta, offset, audio, delta))
+    this.state.notes
+      .filter(note => prevDelta - offset < this.getDurationMs(note.beat) && delta - offset >= this.getDurationMs(note.beat))
+      .forEach(({ beat }, i) => console.log({ noteNum: i, beat }))
   }
 
   render() {
@@ -109,15 +157,13 @@ export default class MapEditor extends Component<Props, State> {
             return <Circle
               key={i}
               x={this.LINES_BORDER + (this.WIDTH - this.LINES_BORDER * 2) * lane / 4}
-              y={-this.state.beatGap * beat + this.state.scroll}
+              y={this.getYFromBeats(beat)}
               width={(this.WIDTH - this.LINES_BORDER) / 6}
               height={this.state.beatGap / 4}
               fill="red"
               listening={false}
             />
-          })
-
-          }
+          })}
         </Layer>
       </Stage>
     </div>

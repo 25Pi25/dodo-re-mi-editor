@@ -46,10 +46,10 @@ export interface EditorBeatNote {
 }
 
 export const mainKeys = ["c", "d", "e", "f", "g","a", "b"] as const;
-type MainKeys = typeof mainKeys[number];
+type MainKey = typeof mainKeys[number];
 export const keyModifiers = ["", "s", "b"] as const;
-type KeyModifiers = typeof keyModifiers[number];
-export type Scale = Omit<`${MainKeys}${KeyModifiers}`, "bs" | "cb" | "es" | "fb">
+type KeyModifier = typeof keyModifiers[number];
+export type Scale = Omit<`${MainKey}${KeyModifier}`, "bs" | "cb" | "es" | "fb">
 export type ScaleKey = "major" | "minor" // support for aug/dim? not sure
-export const tabType = ["Mapping", "Metadata"] as const;
-export type TabType = typeof tabType[number];
+export const tabTypes = ["Mapping", "Metadata"] as const;
+export type TabType = typeof tabTypes[number];
