@@ -49,7 +49,7 @@ export default class MapEditor extends Component<Props, State> {
     const { key } = event;
     if (changeTo) this.heldKeys.add(key);
     else this.heldKeys.delete(key);
-    
+
     if (key == " " && changeTo) {
       this.playtestSong()
       return;
@@ -158,6 +158,24 @@ export default class MapEditor extends Component<Props, State> {
 
   render() {
     return <div className='map'>
+      <div className='horizontal'>
+        <p>BPM</p>
+        <input
+          type="number"
+          name="bpm"
+          defaultValue={this.state.bpm}
+          width={1}
+          onChange={e => this.setState({ bpm: parseInt(e.target.value) })}
+        />
+        <p>Offset</p>
+        <input
+          type="number"
+          name="bpm"
+          defaultValue={this.state.offset}
+          width={1}
+          onChange={e => this.setState({ offset: parseInt(e.target.value) })}
+        />
+      </div>
       <Stage width={this.WIDTH} height={this.HEIGHT} onWheel={e => this.handleWheel(e)}>
         <Layer>
           {...Array.from({ length: this.state.lanes }, (_, i) =>
