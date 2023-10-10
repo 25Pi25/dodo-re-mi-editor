@@ -33,12 +33,12 @@ export default function BeatMarkers({ editor }: { editor: MapEditor }) {
                     align='center'
                     verticalAlign='middle'
                 />}
-                {Array.from({ length: 5 }, (_, j) => {
+                {Array.from({ length: editor.state.lanes }, (_, j) => {
                     const width = (editor.WIDTH - editor.LINES_BORDER) / 6;
                     const height = editor.state.beatGap / 4
                     return <Fragment key={j}>
                         <Rect
-                            x={editor.LINES_BORDER + (editor.WIDTH - editor.LINES_BORDER * 2) * j / 4}
+                            x={editor.LINES_BORDER + (editor.WIDTH - editor.LINES_BORDER * 2) * j / (editor.state.lanes - 1)}
                             y={scroll}
                             width={width}
                             height={height}
@@ -48,7 +48,7 @@ export default function BeatMarkers({ editor }: { editor: MapEditor }) {
                         />
                         {editor.state.hover?.[0] == i && editor.state.hover?.[1] == j &&
                             <Circle
-                                x={editor.LINES_BORDER + (editor.WIDTH - editor.LINES_BORDER * 2) * j / 4}
+                                x={editor.LINES_BORDER + (editor.WIDTH - editor.LINES_BORDER * 2) * j / (editor.state.lanes - 1)}
                                 y={scroll}
                                 width={width}
                                 height={height}

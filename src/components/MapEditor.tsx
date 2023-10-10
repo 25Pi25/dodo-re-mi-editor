@@ -15,6 +15,7 @@ interface State {
   beatGap: number
   bpm: number
   offset: number
+  lanes: number
   notes: EditorBeatNote[]
   hover?: [number, number]
   playbackMs?: number
@@ -30,13 +31,12 @@ export default class MapEditor extends Component<Props, State> {
     scroll: 600,
     precision: 4,
     beatGap: 200,
-    bpm: 91,
-    offset: 9750,
+    bpm: 188,
+    offset: 0,
+    lanes: 4,
     notes: []
   }
-  holding = {
-    alt: false
-  }
+  heldKeys = new Set();
 
   constructor(props: Props) {
     super(props);
@@ -45,33 +45,37 @@ export default class MapEditor extends Component<Props, State> {
     this.ogg = ogg;
   }
 
-  handleAltKey(e: KeyboardEvent, changeAltTo: boolean) {
-    if (e.key == " " && changeAltTo) {
+  handleKeys(event: KeyboardEvent, changeTo: boolean) {
+    const { key } = event;
+    if (changeTo) this.heldKeys.add(key);
+    else this.heldKeys.delete(key);
+    
+    if (key == " " && changeTo) {
       this.playtestSong()
       return;
     }
-    if (e.key != "Alt") return;
-    this.holding.alt = changeAltTo;
-    e.preventDefault();
+    if (key == "Alt") event.preventDefault();
   }
 
   // TODO: reorganize this because event listeners are a bitch
-  func1 = (e: KeyboardEvent) => this.handleAltKey(e, true);
-  func2 = () => this.holding.alt = false;
-  func3 = (e: KeyboardEvent) => this.handleAltKey(e, false);
+  func1 = (e: KeyboardEvent) => this.handleKeys(e, true);
+  func2 = () => this.heldKeys.clear()
+  func3 = (e: KeyboardEvent) => this.handleKeys(e, false);
   componentDidMount() {
     document.addEventListener("keydown", this.func1)
-    document.addEventListener("blur", this.func2)
+    window.addEventListener("blur", this.func2)
+    window.addEventListener("focus", this.func2)
     document.addEventListener("keyup", this.func3)
   }
   componentWillUnmount() {
     document.removeEventListener("keydown", this.func1)
-    document.removeEventListener("blur", this.func2)
+    window.removeEventListener("blur", this.func2)
+    window.removeEventListener("focus", this.func2)
     document.removeEventListener("keyup", this.func3)
   }
 
   handleWheel({ evt: { deltaY } }: KonvaEventObject<WheelEvent>) {
-    if (this.holding.alt) {
+    if (this.heldKeys.has("Alt")) {
       const isNegative = deltaY < 0;
       const beats = (this.state.scroll - (this.HEIGHT / 2)) / this.state.beatGap
       const newBeatGap = Math.min(Math.max(1, this.state.beatGap * (isNegative ? 2 : 0.5)), this.HEIGHT / 2)
@@ -82,7 +86,7 @@ export default class MapEditor extends Component<Props, State> {
       return;
     }
     this.setState(({ scroll }) => ({
-      scroll: Math.min(Math.max(0, scroll - deltaY), this.getTotalBeats() * this.state.beatGap + 500)
+      scroll: Math.min(Math.max(0, scroll - (deltaY < 0 ? -50 : 50)), this.getTotalBeats() * this.state.beatGap + 500)
     }))
   }
 
@@ -120,7 +124,8 @@ export default class MapEditor extends Component<Props, State> {
       const audioUrl = URL.createObjectURL(audioBlob);
 
       const audio = new Audio(audioUrl);
-      audio.currentTime = (this.state.offset + Math.max(this.state.scroll - 800, 0)) / 1000;
+      console.log(this.state.scroll, this.state.offset)
+      audio.currentTime = (this.state.offset + Math.max(this.getDurationMs((this.state.scroll - this.HEIGHT) / this.state.beatGap), 0)) / 1000;
       audio.play();
 
       const hit = new Audio();
@@ -136,21 +141,29 @@ export default class MapEditor extends Component<Props, State> {
       audio.pause();
       return;
     }
+    if (this.getTotalBeats(this.state.playbackMs) > this.getTotalBeats()) {
+      audio.pause();
+      this.playtestSong();
+      return;
+    }
     this.setState({ playbackMs: time })
     requestAnimationFrame(() => this.playbackFrame(audio, hit, time))
     this.state.notes
       .filter(note => prevTime <= this.getDurationMs(note.beat) && time >= this.getDurationMs(note.beat))
-      .forEach(() => hit.play())
+      .forEach(() => {
+        hit.currentTime = 0;
+        hit.play();
+      })
   }
 
   render() {
     return <div className='map'>
       <Stage width={this.WIDTH} height={this.HEIGHT} onWheel={e => this.handleWheel(e)}>
         <Layer>
-          {...Array.from({ length: 5 }, (_, i) =>
+          {...Array.from({ length: this.state.lanes }, (_, i) =>
             <Rect
               key={i}
-              x={this.LINES_BORDER + (this.WIDTH - this.LINES_BORDER * 2) / 4 * i}
+              x={this.LINES_BORDER + (this.WIDTH - this.LINES_BORDER * 2) / (this.state.lanes - 1) * i}
               width={3}
               height={this.HEIGHT}
               offset={{ x: 1.5, y: 0 }}
@@ -163,7 +176,7 @@ export default class MapEditor extends Component<Props, State> {
           {...this.state.notes.map(({ beat, lane }, i) => {
             return <Circle
               key={i}
-              x={this.LINES_BORDER + (this.WIDTH - this.LINES_BORDER * 2) * lane / 4}
+              x={this.LINES_BORDER + (this.WIDTH - this.LINES_BORDER * 2) * lane / (this.state.lanes - 1)}
               y={this.getYFromBeats(beat)}
               width={(this.WIDTH - this.LINES_BORDER) / 6}
               height={this.state.beatGap / 4}
